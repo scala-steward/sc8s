@@ -1,6 +1,7 @@
 package net.sc8s.elastic
 
 import akka.Done
+import akka.actor.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter._
 import akka.stream.scaladsl.{Sink, Source}
@@ -8,7 +9,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.{ElasticField, KeywordField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.task.GetTaskResponse
-import com.sksamuel.elastic4s.streams.ReactiveElastic._
+import com.sksamuel.elastic4s.akka.reactivestreams.ReactiveElastic._
 import com.sksamuel.elastic4s.{ElasticClient, RequestFailure, RequestSuccess}
 import com.typesafe.config.Config
 import io.circe.Codec
@@ -60,7 +61,7 @@ object Evolver extends ClusterComponent.Singleton {
   }
 
   class Component(
-                   elasticClient: ElasticClient,
+                   elasticClient: ElasticClient[Future],
                    elasticIndices: Set[Index],
                    config: Config,
                  ) extends BaseComponent {
@@ -82,7 +83,7 @@ object Evolver extends ClusterComponent.Singleton {
     override val behavior = { ctx =>
       import ctx.{log, materializer, actorContext => context}
       import context.executionContext
-      implicit val classicActorSystem = context.system.toClassic
+      implicit val classicActorSystem: ActorSystem = context.system.toClassic
 
       def resolveElasticIndices(indices: Seq[String]) =
         if (indices.nonEmpty) indices.map(index => elasticIndices.find(_.name == index).get)
