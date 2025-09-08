@@ -168,14 +168,14 @@ object Dependencies {
   }
 
   object elastic4s {
-    private val elastic4s = "9.0.0"
+    private val elastic4s = "9.1.0"
     private val elasticsearch = "9.0.3"
 
     val clientAkka = "nl.gn0s1s" %% "elastic4s-client-akka" % elastic4s
     val clientJava = "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % elastic4s
     val core = "nl.gn0s1s" %% "elastic4s-core" % elastic4s
     val elasticTestFramework = "org.elasticsearch.test" % "framework" % elasticsearch
-    val httpStreams = "nl.gn0s1s" %% "elastic4s-http-streams" % elastic4s
+    val httpStreams = "nl.gn0s1s" %% "elastic4s-reactivestreams-akka" % elastic4s
     val jsonCirce = "nl.gn0s1s" %% "elastic4s-json-circe" % elastic4s
     val jsonPlay = "com.sksamuel.elastic4s" %% "elastic4s-json-play" % elastic4s
     // does not work, use httpStreams instead

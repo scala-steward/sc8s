@@ -30,7 +30,7 @@ import scala.util.chaining.scalaUtilChainingOps
 
 class EvolverSpec extends ScalaTestWithActorTestKit(Evolver.serializers) with AnyWordSpecLike with Matchers with Logging with ClusterComponentTestKit {
 
-  implicit lazy val elasticClient: ElasticClient = ElasticClient(AkkaHttpClient(AkkaHttpClientSettings())(system.toClassic))
+  implicit lazy val elasticClient: ElasticClient[Future] = ElasticClient(AkkaHttpClient(AkkaHttpClientSettings())(system.toClassic))
 
   implicit lazy val indexSetup: IndexSetup = IndexSetup(
     elasticClient,

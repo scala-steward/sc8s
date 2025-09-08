@@ -2,7 +2,7 @@ package net.sc8s.elastic.testkit
 
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
-import cats.implicits.toTraverseOps
+import cats.implicits.{catsStdInstancesForFuture, toTraverseOps}
 import com.sksamuel.elastic4s.ElasticClient
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.akka.{AkkaHttpClient, AkkaHttpClientSettings}
@@ -11,6 +11,7 @@ import net.sc8s.elastic.{Index, IndexSetup}
 import org.scalatest.Inspectors.forAll
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, EitherValues, Suite}
 
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.Random
 
 trait ElasticIndexTesting extends BeforeAndAfterEach with BeforeAndAfterAll with EitherValues {
@@ -18,7 +19,10 @@ trait ElasticIndexTesting extends BeforeAndAfterEach with BeforeAndAfterAll with
 
   val elasticIndices: Set[Index]
 
-  implicit lazy val elasticClient = ElasticClient(AkkaHttpClient(AkkaHttpClientSettings())(system.toClassic))
+  implicit lazy val elasticClient: ElasticClient[Future] = {
+    implicit val executionContext: ExecutionContextExecutor = system.executionContext
+    ElasticClient(AkkaHttpClient(AkkaHttpClientSettings())(system.toClassic))
+  }
 
   implicit lazy val indexSetup: IndexSetup = IndexSetup(
     elasticClient,
@@ -34,9 +38,9 @@ trait ElasticIndexTesting extends BeforeAndAfterEach with BeforeAndAfterAll with
   // note: refresh,forceMerge didn't help
   val recreateIndices = false
 
-  override protected def beforeAll() = {
+  override protected def beforeAll(): Unit = {
     if (createTemporaryIndices && !recreateIndices) {
-      implicit val executionContext = system.executionContext
+      implicit val executionContext: ExecutionContextExecutor = system.executionContext
       forAll(elasticIndices.map(index =>
         elasticClient.execute(
           createIndex(index.name)
@@ -48,9 +52,9 @@ trait ElasticIndexTesting extends BeforeAndAfterEach with BeforeAndAfterAll with
     super.beforeAll()
   }
 
-  override protected def beforeEach() = {
+  override protected def beforeEach(): Unit = {
     if (createTemporaryIndices) {
-      implicit val executionContext = system.executionContext
+      implicit val executionContext: ExecutionContextExecutor = system.executionContext
       if (recreateIndices)
         forAll(
           elasticIndices.map(recreateIndex).toList.sequence.futureValue
@@ -67,7 +71,7 @@ trait ElasticIndexTesting extends BeforeAndAfterEach with BeforeAndAfterAll with
     super.beforeEach()
   }
 
-  protected override def afterAll() = {
+  protected override def afterAll(): Unit = {
     if (createTemporaryIndices)
       elasticClient.execute(deleteIndex(elasticIndices.map(_.name)))
     super.afterAll()
