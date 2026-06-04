@@ -1,3 +1,6 @@
-# SBT
+---
+trigger: sbt
+description: how to run sbt commands
+---
 
-- when running sbt commands, always use `direnv allow && direnv exec . sbt` pattern
+use `direnv allow && direnv exec . sbt`
